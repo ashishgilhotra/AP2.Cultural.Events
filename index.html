@@ -285,14 +285,15 @@
                     <div class="flex items-center space-x-2">
                         <span>${category} (${teamCount} entries)</span>
                     </div>
-                    <svg class="w-8 h-8 text-purple-400 transform transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <!-- Icon for collapse/expand state. Rotates when active. -->
+                    <svg class="w-8 h-8 text-purple-400 transform transition-transform duration-300 rotate-[-90deg]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                     </svg>
                 `;
                 
-                // Content wrapper for the collapsible items
+                // Content wrapper for the collapsible items, now hidden by default
                 const contentWrapper = document.createElement('div');
-                contentWrapper.className = 'category-content space-y-4 overflow-hidden transition-all duration-300 ease-in-out';
+                contentWrapper.className = 'category-content space-y-4 overflow-hidden hidden transition-all duration-300 ease-in-out';
                 
                 dataToDisplay[category].forEach((team, index) => {
                     const teamCard = document.createElement('div');
