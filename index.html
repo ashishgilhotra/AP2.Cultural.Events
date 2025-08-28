@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cultural Events Viewer</title>
+    <title>AP2 Cultural Event</title>
     <!-- Use Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(to bottom right, #e0f2fe, #f0e6ff); /* Soft gradient background */
+            /* New vibrant gradient background */
+            background: linear-gradient(to bottom right, #8b5cf6, #14b8a6); 
             color: #1f2937;
         }
 
@@ -60,7 +61,8 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-blue-600">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Z" />
                 </svg>
-                <span>Cultural Events Viewer</span>
+                <!-- Updated Heading Text -->
+                <span>AP2 Cultural Event</span>
             </div>
             
             <!-- Search, Filter, and Sort Controls -->
@@ -92,6 +94,8 @@
                         <option value="default">Default Order</option>
                         <option value="asc">Team Name (A-Z)</option>
                         <option value="desc">Team Name (Z-A)</option>
+                        <option value="oldest">Date (Oldest First)</option>
+                        <option value="newest">Date (Newest First)</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -189,7 +193,7 @@
                     return obj;
                 });
                 
-                // Populate category filter options
+                // Populate category filter options with all categories, including 'Uncategorized'
                 const categories = [...new Set(allData.map(team => team['Category'] || 'Uncategorized'))].sort();
                 categories.forEach(category => {
                     const option = document.createElement('option');
@@ -198,7 +202,7 @@
                     categoryFilter.appendChild(option);
                 });
 
-                // Initial display of all data
+                // Initial display of all data, with 'Uncategorized' filtered out by default
                 updateDisplay();
 
             } catch (error) {
@@ -222,7 +226,9 @@
                 const teamCategory = team['Category'] || 'Uncategorized';
                 
                 const matchesSearch = teamName.includes(searchTerm) || teamMembers.includes(searchTerm);
-                const matchesCategory = selectedCategory === "All" || teamCategory === selectedCategory;
+                
+                // The main change: Filter out 'Uncategorized' by default when 'All Categories' is selected.
+                const matchesCategory = (selectedCategory === "All" && teamCategory !== 'Uncategorized') || teamCategory === selectedCategory;
                 
                 return matchesSearch && matchesCategory;
             });
@@ -230,12 +236,20 @@
             // Step 2: Sort the filtered data
             if (sortSelection !== 'default') {
                 filteredAndSortedData.sort((a, b) => {
-                    const nameA = a['Team Name'].toLowerCase();
-                    const nameB = b['Team Name'].toLowerCase();
                     if (sortSelection === 'asc') {
+                        const nameA = a['Team Name'].toLowerCase();
+                        const nameB = b['Team Name'].toLowerCase();
                         return nameA.localeCompare(nameB);
-                    } else {
+                    } else if (sortSelection === 'desc') {
+                        const nameA = a['Team Name'].toLowerCase();
+                        const nameB = b['Team Name'].toLowerCase();
                         return nameB.localeCompare(nameA);
+                    } else if (sortSelection === 'oldest') {
+                        // Sort by date - oldest first
+                        return new Date(a['Date']) - new Date(b['Date']);
+                    } else if (sortSelection === 'newest') {
+                        // Sort by date - newest first
+                        return new Date(b['Date']) - new Date(a['Date']);
                     }
                 });
             }
@@ -263,10 +277,22 @@
             for (const category in dataToDisplay) {
                 const categorySection = document.createElement('div');
                 const teamCount = dataToDisplay[category].length;
-                categorySection.className = 'p-6 rounded-3xl shadow-xl space-y-4 bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50';
-                categorySection.innerHTML = `
-                    <h2 class="text-3xl font-extrabold text-gray-900 border-b-4 border-purple-200 pb-2 mb-4 animate-fade-in-up">${category} (${teamCount} entries)</h2>
+                
+                // Main category header with a button for collapsing
+                const header = document.createElement('h2');
+                header.className = 'flex justify-between items-center text-3xl font-extrabold text-gray-900 border-b-4 border-purple-200 pb-2 mb-4 cursor-pointer hover:text-blue-600 transition-colors duration-200';
+                header.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span>${category} (${teamCount} entries)</span>
+                    </div>
+                    <svg class="w-8 h-8 text-purple-400 transform transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
                 `;
+                
+                // Content wrapper for the collapsible items
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'category-content space-y-4 overflow-hidden transition-all duration-300 ease-in-out';
                 
                 dataToDisplay[category].forEach((team, index) => {
                     const teamCard = document.createElement('div');
@@ -283,9 +309,23 @@
                         <p class="text-gray-700">
                             <span class="font-semibold">Team Members:</span> ${team['Team Member Names']}
                         </p>
+                        <p class="text-gray-700">
+                            <span class="font-semibold">Date:</span> ${team['Date']}
+                        </p>
                     `;
-                    categorySection.appendChild(teamCard);
+                    contentWrapper.appendChild(teamCard);
                 });
+                
+                // Add click listener to the header to toggle content visibility
+                header.addEventListener('click', () => {
+                    const icon = header.querySelector('svg');
+                    const isHidden = contentWrapper.classList.toggle('hidden');
+                    icon.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
+                });
+
+                // Append elements to the main container
+                categorySection.appendChild(header);
+                categorySection.appendChild(contentWrapper);
                 dataContainer.appendChild(categorySection);
             }
         }
