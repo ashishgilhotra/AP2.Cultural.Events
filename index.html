@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cultural Events Viewer</title>
+    <!-- Use Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #e0f2fe, #f0e6ff); /* Soft gradient background */
+            color: #1f2937;
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Keyframes for a more dynamic card entry animation */
+        @keyframes pop-in {
+            0% { transform: scale(0.9); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .animate-pop-in {
+            animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Keyframes for the main container fading in */
+        @keyframes fade-in-down {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fade-in-down 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="p-8 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-5xl bg-white shadow-2xl rounded-3xl p-8 space-y-8 animate-fade-in-down">
+
+        <!-- Title and controls container -->
+        <header class="text-center space-y-3">
+            <div class="flex items-center justify-center gap-3 text-5xl font-extrabold text-gray-900">
+                <!-- New, more relevant icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-blue-600">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Z" />
+                </svg>
+                <span>Cultural Events Viewer</span>
+            </div>
+            
+            <!-- Search, Filter, and Sort Controls -->
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Search Input -->
+                <div class="relative sm:col-span-1">
+                    <input type="text" id="searchInput" placeholder="Search by team name..." class="w-full p-4 pl-12 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </div>
+                
+                <!-- Category Filter Dropdown -->
+                <div class="relative sm:col-span-1">
+                    <select id="categoryFilter" class="w-full p-4 pl-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all shadow-md appearance-none bg-white pr-10">
+                        <option value="All">All Categories</option>
+                        <!-- Categories will be added dynamically -->
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Sort Dropdown -->
+                <div class="relative sm:col-span-1">
+                    <select id="sortOrder" class="w-full p-4 pl-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all shadow-md appearance-none bg-white pr-10">
+                        <option value="default">Default Order</option>
+                        <option value="asc">Team Name (A-Z)</option>
+                        <option value="desc">Team Name (Z-A)</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75M3 18h14.25M17.25 9v1.5m0 0v1.5m0-1.5h.75m-.75 1.5h.75m-7.5 0H12m-2.25-4.5h1.5M12 18h.008v.008H12V18Z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Loading state and message container -->
+        <div id="loadingIndicator" class="text-center text-gray-500">
+            <svg class="animate-spin h-10 w-10 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2 text-xl font-medium text-gray-700">Fetching and parsing data...</p>
+        </div>
+
+        <!-- Data display container -->
+        <div id="dataContainer" class="space-y-12">
+            <!-- Data will be dynamically inserted here -->
+        </div>
+
+        <!-- No results message -->
+        <div id="noResults" class="hidden text-center text-gray-500 p-8">
+            <p class="text-xl font-medium">No events match your search or filter criteria.</p>
+        </div>
+
+        <!-- Custom message box for errors -->
+        <div id="messageBox" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-2xl text-center space-y-4">
+                <h3 id="messageTitle" class="text-2xl font-bold text-red-600">Error</h3>
+                <p id="messageText" class="text-gray-700">An unknown error occurred.</p>
+                <button id="closeMessageButton" class="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const dataContainer = document.getElementById('dataContainer');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const sortOrder = document.getElementById('sortOrder');
+        const noResultsMessage = document.getElementById('noResults');
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        const closeMessageButton = document.getElementById('closeMessageButton');
+
+        let allData = []; // Store all data globally after fetching
+
+        // Function to show the custom message box
+        function showMessage(title, message) {
+            messageTitle.textContent = title;
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+        }
+
+        // Close message box event listener
+        closeMessageButton.addEventListener('click', () => {
+            messageBox.classList.add('hidden');
+        });
+
+        // The URL of the published Google Sheet is now embedded directly in the code.
+        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQC245vKxut-htiyGDstFE9fp9U42cfaAKXE3uiF1Yxe01qxysRrMHVIgg9TbHX3TOvcNNoSz6AHekH/pub?output=csv";
+
+        // Main function to fetch, process, and display data
+        async function fetchAndSetupViewer(url) {
+            loadingIndicator.classList.remove('hidden');
+            dataContainer.innerHTML = '';
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvData = await response.text();
+
+                // Parse the CSV data
+                const rows = csvData.split('\n').filter(row => row.trim() !== '');
+                if (rows.length <= 1) {
+                    throw new Error("No data found or only headers exist in the sheet.");
+                }
+
+                const headers = rows[0].split(',').map(header => header.trim().replace(/"/g, ''));
+                allData = rows.slice(1).map(row => {
+                    const values = row.split(',').map(val => val.trim().replace(/"/g, ''));
+                    let obj = {};
+                    headers.forEach((header, index) => {
+                        obj[header] = values[index];
+                    });
+                    return obj;
+                });
+                
+                // Populate category filter options
+                const categories = [...new Set(allData.map(team => team['Category'] || 'Uncategorized'))].sort();
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoryFilter.appendChild(option);
+                });
+
+                // Initial display of all data
+                updateDisplay();
+
+            } catch (error) {
+                console.error("Error fetching or parsing data:", error);
+                showMessage('Data Error', `An error occurred: ${error.message}. Please ensure the URL is correct and the sheet is published to the web with CSV output.`);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+        
+        // This function handles all filtering and sorting and then calls displayData
+        function updateDisplay() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            const sortSelection = sortOrder.value;
+
+            // Step 1: Filter the data based on search term and category
+            let filteredAndSortedData = allData.filter(team => {
+                const teamName = team['Team Name'] ? team['Team Name'].toLowerCase() : '';
+                const teamMembers = team['Team Member Names'] ? team['Team Member Names'].toLowerCase() : '';
+                const teamCategory = team['Category'] || 'Uncategorized';
+                
+                const matchesSearch = teamName.includes(searchTerm) || teamMembers.includes(searchTerm);
+                const matchesCategory = selectedCategory === "All" || teamCategory === selectedCategory;
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            // Step 2: Sort the filtered data
+            if (sortSelection !== 'default') {
+                filteredAndSortedData.sort((a, b) => {
+                    const nameA = a['Team Name'].toLowerCase();
+                    const nameB = b['Team Name'].toLowerCase();
+                    if (sortSelection === 'asc') {
+                        return nameA.localeCompare(nameB);
+                    } else {
+                        return nameB.localeCompare(nameA);
+                    }
+                });
+            }
+
+            // Step 3: Group the final data by category
+            const groupedData = filteredAndSortedData.reduce((acc, team) => {
+                const category = team['Category'] || 'Uncategorized';
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(team);
+                return acc;
+            }, {});
+
+            // Step 4: Display the final result
+            displayData(groupedData);
+        }
+
+        // Function to display the data based on the current grouped data
+        function displayData(dataToDisplay) {
+            dataContainer.innerHTML = '';
+            const hasResults = Object.keys(dataToDisplay).length > 0;
+            noResultsMessage.classList.toggle('hidden', hasResults);
+            
+            for (const category in dataToDisplay) {
+                const categorySection = document.createElement('div');
+                const teamCount = dataToDisplay[category].length;
+                categorySection.className = 'p-6 rounded-3xl shadow-xl space-y-4 bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50';
+                categorySection.innerHTML = `
+                    <h2 class="text-3xl font-extrabold text-gray-900 border-b-4 border-purple-200 pb-2 mb-4 animate-fade-in-up">${category} (${teamCount} entries)</h2>
+                `;
+                
+                dataToDisplay[category].forEach((team, index) => {
+                    const teamCard = document.createElement('div');
+                    teamCard.className = 'p-6 border border-gray-200 rounded-2xl shadow-md bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-pop-in';
+                    teamCard.style.animationDelay = `${index * 0.05}s`; // Stagger animation for each card
+                    teamCard.innerHTML = `
+                        <h3 class="text-xl font-bold text-blue-600">${team['Team Name']}</h3>
+                        <p class="text-gray-700 mt-2">
+                            <span class="font-semibold">Primary Contact:</span> ${team['Primary Contact Name']}
+                        </p>
+                        <p class="text-gray-700">
+                            <span class="font-semibold">Contact Number:</span> ${team['Primary Contact Number']}
+                        </p>
+                        <p class="text-gray-700">
+                            <span class="font-semibold">Team Members:</span> ${team['Team Member Names']}
+                        </p>
+                    `;
+                    categorySection.appendChild(teamCard);
+                });
+                dataContainer.appendChild(categorySection);
+            }
+        }
+
+        // Debounce function to limit search calls
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Add event listeners for all control inputs
+        searchInput.addEventListener('input', debounce(updateDisplay, 300));
+        categoryFilter.addEventListener('change', updateDisplay);
+        sortOrder.addEventListener('change', updateDisplay);
+
+        // Automatically call the function on page load
+        window.addEventListener('load', () => {
+            fetchAndSetupViewer(SHEET_URL);
+        });
+    </script>
+</body>
+</html>
