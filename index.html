@@ -177,22 +177,26 @@
                 }
                 const csvData = await response.text();
 
+                // Regex to split CSV, correctly handling commas inside double quotes
+                const csvRegex = /("([^"]*)"|[^,]+)/g;
+
                 // Parse the CSV data
                 const rows = csvData.split('\n').filter(row => row.trim() !== '');
                 if (rows.length <= 1) {
                     throw new Error("No data found or only headers exist in the sheet.");
                 }
 
-                const headers = rows[0].split(',').map(header => header.trim().replace(/"/g, ''));
+                const headers = rows[0].match(csvRegex).map(h => h.trim().replace(/^"|"$/g, ''));
+                
                 allData = rows.slice(1).map(row => {
-                    const values = row.split(',').map(val => val.trim().replace(/"/g, ''));
+                    const values = row.match(csvRegex).map(v => v.trim().replace(/^"|"$/g, ''));
                     let obj = {};
                     headers.forEach((header, index) => {
                         obj[header] = values[index];
                     });
                     return obj;
                 });
-                
+
                 // Populate category filter options with all categories, including 'Uncategorized'
                 const categories = [...new Set(allData.map(team => team['Category'] || 'Uncategorized'))].sort();
                 categories.forEach(category => {
@@ -246,10 +250,10 @@
                         return nameB.localeCompare(nameA);
                     } else if (sortSelection === 'oldest') {
                         // Sort by date - oldest first
-                        return new Date(a['Date']) - new Date(b['Date']);
+                        return new Date(a['Timestamp']) - new Date(b['Timestamp']);
                     } else if (sortSelection === 'newest') {
                         // Sort by date - newest first
-                        return new Date(b['Date']) - new Date(a['Date']);
+                        return new Date(b['Timestamp']) - new Date(a['Timestamp']);
                     }
                 });
             }
@@ -311,7 +315,7 @@
                             <span class="font-semibold">Team Members:</span> ${team['Team Member Names']}
                         </p>
                         <p class="text-gray-700">
-                            <span class="font-semibold">Date:</span> ${team['Date']}
+                            <span class="font-semibold">Date:</span> ${team['Timestamp']}
                         </p>
                     `;
                     contentWrapper.appendChild(teamCard);
